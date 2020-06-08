@@ -18,11 +18,18 @@ interface IbgeUFResponse {
     sigla: string;
 }
 
+interface IbgeCityResponse {
+    nome: string;
+}
+
 const CreateCollectorPoint = () => {
 
     const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
-    const [ufs, setUfs] = useState<string[]>([]);
+    const [ufs, setUfs] = useState<string[]>([]);    
+    const [cities, setCities] = useState<string[]>([]);
+
     const [selectedUf, setSelectedUf] = useState("0");
+    const [selectedCity, setSelectedCity] = useState("0");
 
     useEffect(() => {
         api.get("/itemTypes").then( response => {
@@ -36,13 +43,34 @@ const CreateCollectorPoint = () => {
                 const ufInitials = response.data.map(uf => uf.sigla);
                 setUfs(ufInitials);
             });
-    },[]);    
+    },[]);
+
+    useEffect(() => {
+        if(selectedUf === "0"){
+            return
+        }
+
+        axios.get<IbgeCityResponse[]>(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios`)
+            .then( response => {
+                const citiesNames = response.data.map(city => city.nome);
+                setCities(citiesNames);
+            });
+
+    },[selectedUf]);
+
+    function handleMapClick(){
+        
+    }
 
     function handleSelectUf(event : ChangeEvent<HTMLSelectElement>){
         const uf = event.target.value;
         setSelectedUf(uf);
     }
 
+    function handleSelectCity(event : ChangeEvent<HTMLSelectElement>){
+        const city = event.target.value;
+        setSelectedCity(city);
+    }
 
     return (
         <div id="page-create-collector-point">
@@ -95,7 +123,7 @@ const CreateCollectorPoint = () => {
                         <span>Selecione o endereço no mapa</span>
                     </legend>
 
-                    <Map center={[-30.140719, -51.130112]} zoom={13}>
+                    <Map center={[-30.140719, -51.130112]} zoom={13} onClick={handleMapClick}>
                         <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
@@ -118,8 +146,13 @@ const CreateCollectorPoint = () => {
                         </div>
                         <div className="field">
                             <label htmlFor="city">Cidade</label>
-                            <select name="city" id="city">
+                            <select name="city" id="city" value={selectedCity} onChange={handleSelectCity}>
                                 <option value="0">Selecione uma Cidade</option>
+                                {
+                                    cities.map(city => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))
+                                }                                
                             </select>
                         </div>                        
                     </div>
