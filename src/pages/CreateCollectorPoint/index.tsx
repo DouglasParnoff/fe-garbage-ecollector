@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import { Map, TileLayer, Marker} from "react-leaflet";
 import api from "../../services/api"
+import axios from "axios";
 
 import "./styles.css";
 import logo from "../../assets/logo.svg";
@@ -13,15 +14,35 @@ interface ItemType{
     imageURL: string
 }
 
+interface IbgeUFResponse {
+    sigla: string;
+}
+
 const CreateCollectorPoint = () => {
 
     const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
+    const [ufs, setUfs] = useState<string[]>([]);
+    const [selectedUf, setSelectedUf] = useState("0");
 
     useEffect(() => {
         api.get("/itemTypes").then( response => {
             setItemTypes(response.data);
         });
     },[]);
+
+    useEffect(() => {
+        axios.get<IbgeUFResponse[]>("https://servicodados.ibge.gov.br/api/v1/localidades/estados")
+            .then( response => {
+                const ufInitials = response.data.map(uf => uf.sigla);
+                setUfs(ufInitials);
+            });
+    },[]);    
+
+    function handleSelectUf(event : ChangeEvent<HTMLSelectElement>){
+        const uf = event.target.value;
+        setSelectedUf(uf);
+    }
+
 
     return (
         <div id="page-create-collector-point">
@@ -86,8 +107,13 @@ const CreateCollectorPoint = () => {
                     <div className="field-group">
                         <div className="field">
                             <label htmlFor="uf">Estado (UF)</label>
-                            <select name="uf" id="uf">
+                            <select name="uf" id="uf" value={selectedUf} onChange={handleSelectUf}>
                                 <option value="0">Selecione uma UF</option>
+                                {
+                                    ufs.map(uf => (
+                                        <option key={uf} value={uf}>{uf}</option>
+                                    ))
+                                }
                             </select>
                         </div>
                         <div className="field">
