@@ -1,5 +1,5 @@
-import React, { useEffect, useState, ChangeEvent } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState, ChangeEvent, FormEvent } from "react";
+import { Link, useHistory } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import { Map, TileLayer, Marker} from "react-leaflet";
 import { LeafletMouseEvent } from "leaflet";
@@ -41,6 +41,8 @@ const CreateCollectorPoint = () => {
         whatsapp: ""        
     });
 
+    const history = useHistory();
+
     useEffect(()=>{
         navigator.geolocation.getCurrentPosition(position => {
             const {latitude, longitude} = position.coords;
@@ -74,6 +76,26 @@ const CreateCollectorPoint = () => {
             });
 
     },[selectedUf]);
+
+    async function handleSubmit(event : FormEvent){
+        event.preventDefault();
+
+        const {name, email, whatsapp} = formData;
+        const uf = selectedUf;
+        const city = selectedCity;
+        const [latitude, longitude] = selectedPosition;
+        const items = selectedItemTypes; 
+
+        const data = {
+            name, email, whatsapp, uf, city, latitude, longitude, items
+        }
+
+        await api.post(
+            "collectorPoints", data
+        );
+
+        history.push("/");
+    }
 
     function handleSelectedItemTypes(id: number){
         const alreadySelected = selectedItemTypes.findIndex(itemType => itemType === id);
@@ -115,7 +137,7 @@ const CreateCollectorPoint = () => {
                     <FiArrowLeft/> Voltar para home
                 </Link>
             </header>
-            <form>
+            <form onSubmit={handleSubmit}>
                 <h1>Cadastro do <br /> ponto de coleta</h1> 
                 <fieldset>
                     <legend>
