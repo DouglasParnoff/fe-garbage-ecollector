@@ -1,12 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import { Map, TileLayer, Marker} from "react-leaflet";
+import api from "../../services/api"
 
 import "./styles.css";
 import logo from "../../assets/logo.svg";
 
+interface ItemType{
+    id: string,
+    title: string,
+    imageURL: string
+}
+
 const CreateCollectorPoint = () => {
+
+    const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
+
+    useEffect(() => {
+        api.get("/itemTypes").then( response => {
+            setItemTypes(response.data);
+        });
+    },[]);
+
     return (
         <div id="page-create-collector-point">
             <header>
@@ -91,10 +107,12 @@ const CreateCollectorPoint = () => {
                     </legend>
 
                     <ul className="items-grid">
-                        <li>
-                            <img src="http://localhost:8069/uploads/oleo.svg" alt="Teste"/>
-                            <span>Óleo de Cozinha</span>
-                        </li>
+                        {itemTypes.map(item => (
+                            <li key={item.id}>
+                                <img src={item.imageURL} alt="Teste"/>
+                                <span>{item.title}</span>
+                            </li>
+                        ))}
                     </ul>
 
                 </fieldset>
