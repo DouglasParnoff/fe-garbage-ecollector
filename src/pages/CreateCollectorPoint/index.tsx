@@ -2,6 +2,7 @@ import React, { useEffect, useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import { Map, TileLayer, Marker} from "react-leaflet";
+import { LeafletMouseEvent } from "leaflet";
 import api from "../../services/api"
 import axios from "axios";
 
@@ -27,9 +28,18 @@ const CreateCollectorPoint = () => {
     const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
     const [ufs, setUfs] = useState<string[]>([]);    
     const [cities, setCities] = useState<string[]>([]);
+    const [initialPosition, setInitialPosition] = useState<[number, number]>([0,0]);
 
     const [selectedUf, setSelectedUf] = useState("0");
     const [selectedCity, setSelectedCity] = useState("0");
+    const [selectedPosition, setSelectedPosition] = useState<[number, number]>([0,0]);
+
+    useEffect(()=>{
+        navigator.geolocation.getCurrentPosition(position => {
+            const {latitude, longitude} = position.coords;
+            setInitialPosition([latitude, longitude]);
+        });
+    },[]);
 
     useEffect(() => {
         api.get("/itemTypes").then( response => {
@@ -58,8 +68,14 @@ const CreateCollectorPoint = () => {
 
     },[selectedUf]);
 
-    function handleMapClick(){
+    function handleInputChange(event : ChangeEvent<HTMLInputElement>){
         
+    }
+
+    function handleMapClick(event : LeafletMouseEvent){
+        setSelectedPosition([
+            event.latlng.lat, event.latlng.lng
+        ]);
     }
 
     function handleSelectUf(event : ChangeEvent<HTMLSelectElement>){
@@ -128,7 +144,7 @@ const CreateCollectorPoint = () => {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         />
-                        <Marker position={[-30.140719, -51.130112]}>
+                        <Marker position={selectedPosition}>
                         </Marker>
                     </Map>                    
 
