@@ -33,6 +33,13 @@ const CreateCollectorPoint = () => {
     const [selectedUf, setSelectedUf] = useState("0");
     const [selectedCity, setSelectedCity] = useState("0");
     const [selectedPosition, setSelectedPosition] = useState<[number, number]>([0,0]);
+    const [selectedItemTypes, setSelectedItemTypes] = useState<number[]>([]);
+    
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        whatsapp: ""        
+    });
 
     useEffect(()=>{
         navigator.geolocation.getCurrentPosition(position => {
@@ -68,8 +75,20 @@ const CreateCollectorPoint = () => {
 
     },[selectedUf]);
 
+    function handleSelectedItemTypes(id: number){
+        const alreadySelected = selectedItemTypes.findIndex(itemType => itemType === id);
+        let newSelectedItemTypes;
+        if(alreadySelected >= 0){
+            newSelectedItemTypes = selectedItemTypes.filter(item => item !== id);
+        } else {
+            newSelectedItemTypes = [...selectedItemTypes, id];
+        }
+        setSelectedItemTypes(newSelectedItemTypes);
+    }
+
     function handleInputChange(event : ChangeEvent<HTMLInputElement>){
-        
+        const {name, value} = event.target;
+        setFormData({...formData, [name]: value});
     }
 
     function handleMapClick(event : LeafletMouseEvent){
@@ -109,6 +128,7 @@ const CreateCollectorPoint = () => {
                             type="text"
                             name="name"
                             id="name"
+                            onChange={handleInputChange}
                         />
                     </div>
 
@@ -119,6 +139,7 @@ const CreateCollectorPoint = () => {
                                 type="text"
                                 name="email"
                                 id="email"
+                                onChange={handleInputChange}                                
                             />
                         </div>
                         <div className="field">
@@ -127,6 +148,7 @@ const CreateCollectorPoint = () => {
                                 type="text"
                                 name="whatsapp"
                                 id="whatsapp"
+                                onChange={handleInputChange}                                
                             />
                         </div>                                               
                     </div>                    
@@ -183,7 +205,10 @@ const CreateCollectorPoint = () => {
 
                     <ul className="items-grid">
                         {itemTypes.map(item => (
-                            <li key={item.id}>
+                            <li 
+                                key={item.id} 
+                                onClick={() => handleSelectedItemTypes(Number(item.id))}
+                                className={selectedItemTypes.includes(Number(item.id)) ? "selected" : ""}>
                                 <img src={item.imageURL} alt="Teste"/>
                                 <span>{item.title}</span>
                             </li>
